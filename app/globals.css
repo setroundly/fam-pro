@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply min-h-dvh antialiased;
+    background-color: #fafafa;
+    background-image: url("/bg-magic-circle.svg");
+    background-position: center 52%;
+    background-repeat: no-repeat;
+    background-size: min(88vmin, 480px);
+    background-attachment: fixed;
+  }
+
+  html.dark body {
+    background-color: #0a0a0a;
+    background-image: url("/bg-magic-circle.svg");
+    background-position: center 52%;
+    background-repeat: no-repeat;
+    background-size: min(88vmin, 480px);
+    background-attachment: fixed;
+  }
+}
+
+@layer components {
+  /* タイムライン空表示と同じサブコピー */
+  .text-empty-hint {
+    @apply text-center text-sm leading-relaxed text-zinc-500;
+  }
+
+  .app-shell {
+    @apply relative isolate min-h-dvh bg-transparent;
+  }
+}
+
+@layer components {
+  .input {
+    @apply w-full rounded-xl border border-zinc-300 bg-white px-4 py-3.5 text-base text-zinc-900 outline-none transition;
+    @apply placeholder:text-zinc-400 focus:border-fail/50 focus:ring-2 focus:ring-fail/25;
+    @apply dark:border-fail-border/80 dark:bg-zinc-950/90 dark:text-zinc-100 dark:placeholder:text-zinc-600;
+  }
+
+  .input-datetime {
+    color-scheme: dark;
+    min-height: 3rem;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .input-datetime::-webkit-calendar-picker-indicator {
+    filter: invert(0.85) sepia(1) saturate(5) hue-rotate(320deg);
+    opacity: 0.9;
+    cursor: pointer;
+  }
+
+  /* バンド系ディスプレイ書体（読みやすさ優先） */
+  .font-display {
+    font-family: var(--font-jagged), "Slackside One", "RocknRoll One", sans-serif;
+    font-weight: 400;
+  }
+
+  .logo-brand {
+    color: #ff4d4d;
+    letter-spacing: 0.02em;
+    transform: skewX(-4deg);
+    -webkit-text-stroke: 1.5px #0a0a0a;
+    paint-order: stroke fill;
+    text-shadow:
+      2px 2px 0 #000,
+      0 0 18px rgba(224, 32, 32, 0.4);
+  }
+}
