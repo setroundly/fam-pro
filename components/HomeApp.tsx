@@ -36,8 +36,8 @@ export function HomeApp() {
   }
 
   return (
-    <div className="app-shell flex min-h-dvh flex-col text-zinc-100">
-      <header className="sticky top-0 z-10 border-b border-fail-border bg-fail-bg/95 px-4 py-3 backdrop-blur">
+    <div className="app-shell flex min-h-screen flex-col text-zinc-100">
+      <header className="sticky top-0 z-20 border-b border-fail-border bg-fail-bg px-4 py-3">
         <div className="flex items-center justify-between gap-2">
           <Link href="/">
             <AppLogo size="sm" showTagline={false} />
@@ -91,7 +91,7 @@ export function HomeApp() {
         )}
       </main>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-10 border-t border-fail-border bg-fail-card/95 backdrop-blur">
+      <nav className="fixed bottom-0 left-0 right-0 z-20 border-t border-fail-border bg-fail-card">
         <div className="mx-auto flex max-w-md">
           <TabButton
             active={tab === "create"}

@@ -7,23 +7,31 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  html.dark {
+    color-scheme: dark;
+  }
+
   body {
-    @apply min-h-dvh antialiased;
+    @apply min-h-screen antialiased text-zinc-900;
+    min-height: 100dvh;
+    min-height: -webkit-fill-available;
     background-color: #fafafa;
     background-image: url("/bg-magic-circle.svg");
     background-position: center 52%;
     background-repeat: no-repeat;
     background-size: min(88vmin, 480px);
-    background-attachment: fixed;
+    /* Safari iOS: fixed 背景は描画不具合・真っ白になることがある */
+    background-attachment: scroll;
   }
 
   html.dark body {
+    @apply text-zinc-100;
     background-color: #0a0a0a;
     background-image: url("/bg-magic-circle.svg");
     background-position: center 52%;
     background-repeat: no-repeat;
     background-size: min(88vmin, 480px);
-    background-attachment: fixed;
+    background-attachment: scroll;
   }
 }
 
@@ -34,7 +42,9 @@
   }
 
   .app-shell {
-    @apply relative isolate min-h-dvh bg-transparent;
+    @apply relative min-h-screen bg-transparent;
+    min-height: 100dvh;
+    min-height: -webkit-fill-available;
   }
 }
 
@@ -68,10 +78,19 @@
     color: #ff4d4d;
     letter-spacing: 0.02em;
     transform: skewX(-4deg);
-    -webkit-text-stroke: 1.5px #0a0a0a;
-    paint-order: stroke fill;
     text-shadow:
+      1px 1px 0 #0a0a0a,
+      -1px 1px 0 #0a0a0a,
+      1px -1px 0 #0a0a0a,
+      -1px -1px 0 #0a0a0a,
       2px 2px 0 #000,
       0 0 18px rgba(224, 32, 32, 0.4);
+  }
+
+  @supports (paint-order: stroke fill) {
+    .logo-brand {
+      -webkit-text-stroke: 1.5px #0a0a0a;
+      paint-order: stroke fill;
+    }
   }
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getRequestSession } from "@/lib/session";
+import { getRequestSessionEdge } from "@/lib/sessionEdge";
 
 const PUBLIC_PATHS = [
   "/",
@@ -29,7 +29,7 @@ function isPublicApiGet(
   return false;
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (isPublicPath(pathname)) {
@@ -40,7 +40,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const session = getRequestSession(request);
+  const session = await getRequestSessionEdge(request);
 
   if (pathname.startsWith("/admin")) {
     if (pathname === "/admin/login") {

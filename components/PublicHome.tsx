@@ -5,8 +5,8 @@ import { APP_DESCRIPTION, APP_TAGLINE } from "@/lib/branding";
 
 export function PublicHome() {
   return (
-    <div className="app-shell flex min-h-dvh flex-col text-zinc-100">
-      <header className="sticky top-0 z-10 border-b border-fail-border bg-fail-bg/95 px-4 py-3 backdrop-blur">
+    <div className="app-shell flex min-h-screen flex-col text-zinc-100">
+      <header className="sticky top-0 z-20 border-b border-fail-border bg-fail-bg px-4 py-3">
         <div className="flex items-center justify-between gap-3">
           <AppLogo />
           <Link
