@@ -22,6 +22,20 @@ export interface Task {
   updated_at: string;
 }
 
+export interface Failure {
+  id: string;
+  created_at: string;
+  title: string;
+  description: string;
+  donation_amount: number;
+  user_name: string;
+  task_id: string | null;
+  user_id: string | null;
+  donation_destination: string | null;
+  donate_url: string | null;
+  consecutive_fail_count?: number;
+}
+
 export interface TimelinePost {
   id: string;
   task_id: string;

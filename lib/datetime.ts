@@ -25,6 +25,23 @@ export function formatJstDateTimeLong(iso: string | Date): string {
   });
 }
 
+/** UTC ISO → たった今 / 3分前 / 1時間前 など */
+export function formatJstRelative(iso: string | Date): string {
+  const d = typeof iso === "string" ? new Date(iso) : iso;
+  if (Number.isNaN(d.getTime())) return "—";
+
+  const diffSec = Math.floor((Date.now() - d.getTime()) / 1000);
+  if (diffSec < 10) return "たった今";
+  if (diffSec < 60) return `${diffSec}秒前`;
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin}分前`;
+  const diffHour = Math.floor(diffMin / 60);
+  if (diffHour < 24) return `${diffHour}時間前`;
+  const diffDay = Math.floor(diffHour / 24);
+  if (diffDay < 7) return `${diffDay}日前`;
+  return formatJstDateTime(d);
+}
+
 /** UTC ISO → 21:45（当日タイムライン用） */
 export function formatJstTime(iso: string | Date): string {
   const d = typeof iso === "string" ? new Date(iso) : iso;

@@ -201,5 +201,4 @@ create policy "tasks update pending" on public.tasks for update
 create policy "notification_targets insert" on public.notification_targets for insert with check (true);
 create policy "notification_targets select" on public.notification_targets for select using (true);
 
--- Optional: enable Realtime for live timeline updates
--- alter publication supabase_realtime add table public.timeline_posts;
+-- Realtime タイムラインは failures テーブルを使用（supabase/failures.sql を実行）
