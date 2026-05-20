@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { Field } from "@/components/ui/Field";
 import { apiErrorMessage, fetchJson } from "@/lib/fetchJson";
+import { COPY } from "@/lib/copy";
+import { buildFamilyInviteUrl } from "@/lib/familyInvite";
 import {
   clearFamilySession,
   getStoredDisplayName,
@@ -16,17 +18,19 @@ type Mode = "choose" | "create" | "join";
 
 interface FamilyPanelProps {
   onFamilyReady: () => void;
+  initialInviteCode?: string;
 }
 
-export function FamilyPanel({ onFamilyReady }: FamilyPanelProps) {
-  const [mode, setMode] = useState<Mode>("choose");
+export function FamilyPanel({ onFamilyReady, initialInviteCode }: FamilyPanelProps) {
+  const [mode, setMode] = useState<Mode>(() => (initialInviteCode ? "join" : "choose"));
   const [displayName, setDisplayName] = useState("");
   const [familyName, setFamilyName] = useState("");
-  const [inviteCode, setInviteCode] = useState("");
+  const [inviteCode, setInviteCode] = useState(initialInviteCode ?? "");
   const [familyInfo, setFamilyInfo] = useState<FamilyInfo | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   const familyId = getStoredFamilyId();
 
@@ -134,6 +138,13 @@ export function FamilyPanel({ onFamilyReady }: FamilyPanelProps) {
     setTimeout(() => setCopied(false), 2000);
   }
 
+  async function copyInviteLink() {
+    if (!familyInfo?.invite_code) return;
+    await navigator.clipboard.writeText(buildFamilyInviteUrl(familyInfo.invite_code));
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 2000);
+  }
+
   if (familyId && familyInfo) {
     return (
       <div className="space-y-4">
@@ -154,7 +165,7 @@ export function FamilyPanel({ onFamilyReady }: FamilyPanelProps) {
           <p className="text-empty-hint mt-1 text-left">
             家族に共有して、同じレシピ帳に参加してもらいましょう。
           </p>
-          <div className="mt-4 flex items-center gap-3">
+          <div className="mt-4 flex flex-wrap items-center gap-3">
             <span className="font-mono text-3xl font-bold tracking-[0.35em] text-kitchen">
               {familyInfo.invite_code}
             </span>
@@ -163,9 +174,17 @@ export function FamilyPanel({ onFamilyReady }: FamilyPanelProps) {
               onClick={() => void copyInviteCode()}
               className="btn-secondary shrink-0 px-4 py-2 text-sm"
             >
-              {copied ? "コピー済み" : "コピー"}
+              {copied ? "コピー済み" : "コード"}
+            </button>
+            <button
+              type="button"
+              onClick={() => void copyInviteLink()}
+              className="btn-primary shrink-0 px-4 py-2 text-sm"
+            >
+              {linkCopied ? "コピー済み" : "参加リンク"}
             </button>
           </div>
+          <p className="text-empty-hint mt-3 text-left text-xs">{COPY.family.inviteLinkHint}</p>
         </div>
 
         <button
@@ -185,9 +204,12 @@ export function FamilyPanel({ onFamilyReady }: FamilyPanelProps) {
 
   return (
     <div className="space-y-4">
-      <p className="text-empty-hint text-left">
-        はじめに家族を作成するか、招待コードで参加してください。
-      </p>
+      <p className="text-empty-hint text-left">{COPY.family.noAccountNote}</p>
+      {initialInviteCode && mode === "join" && (
+        <p className="card-nord border-kitchen/30 bg-kitchen-cream/50 px-4 py-3 text-sm text-kitchen-ink">
+          招待リンクから開きました。名前を入れて「参加する」を押してください。
+        </p>
+      )}
 
       {mode === "choose" && (
         <div className="space-y-3">

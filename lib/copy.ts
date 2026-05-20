@@ -41,6 +41,9 @@ export const COPY = {
   family: {
     subtitle: (name: string) => `${name} の、共有の思い出帳`,
     noFamily: "家族をつくると、レシピも思い出もみんなで育っていきます。",
+    noAccountNote:
+      "メールやパスワードの登録は不要です。名前を入れるだけで、同じレシピ帳を共有できます。",
+    inviteLinkHint: "このリンクを家族に送ると、コード入力なしで参加画面が開きます。",
   },
 
   links: {

@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTheme } from "next-themes";
 import { AppLogo } from "./AppLogo";
 import { FamilyLinksPanel } from "./FamilyLinksPanel";
@@ -10,12 +11,18 @@ import { InstallHint } from "./InstallHint";
 import { RecipeDetail } from "./RecipeDetail";
 import { RecipeForm } from "./RecipeForm";
 import { COPY } from "@/lib/copy";
+import { parseInviteCode } from "@/lib/familyInvite";
 import { getStoredFamilyId, getStoredFamilyName } from "@/lib/session";
 
 type Tab = "home" | "add" | "family" | "links";
 
 export function HomeApp() {
-  const [tab, setTab] = useState<Tab>("home");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const joinFromUrl = parseInviteCode(searchParams.get("join"));
+
+  const [tab, setTab] = useState<Tab>(() => (joinFromUrl ? "family" : "home"));
+  const [inviteFromUrl] = useState(() => joinFromUrl);
   const [recipeRefresh, setRecipeRefresh] = useState(0);
   const [selectedRecipeId, setSelectedRecipeId] = useState<string | null>(null);
   const [editingRecipeId, setEditingRecipeId] = useState<string | null>(null);
@@ -31,6 +38,12 @@ export function HomeApp() {
   }, []);
 
   const familyName = getStoredFamilyName();
+
+  useEffect(() => {
+    if (!joinFromUrl || getStoredFamilyId()) return;
+    setTab("family");
+    router.replace("/", { scroll: false });
+  }, [joinFromUrl, router]);
 
   return (
     <div className="app-shell flex min-h-screen flex-col text-kitchen-ink">
@@ -107,7 +120,10 @@ export function HomeApp() {
             {tab === "family" && (
               <section>
                 <h2 className="section-title mb-3">家族</h2>
-                <FamilyPanel onFamilyReady={refreshFamilyState} />
+                <FamilyPanel
+                  onFamilyReady={refreshFamilyState}
+                  initialInviteCode={inviteFromUrl ?? undefined}
+                />
               </section>
             )}
             {tab === "links" && (
