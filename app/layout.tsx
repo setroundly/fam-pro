@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, RocknRoll_One, Slackside_One } from "next/font/google";
+import { Geist, Geist_Mono, Nunito } from "next/font/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { APP_DESCRIPTION, APP_NAME } from "@/lib/branding";
+import { PoodlePlayground } from "@/components/PoodlePlayground";
+import "@/components/poodle.css";
+import { APP_DESCRIPTION, APP_NAME, getAppUrl } from "@/lib/branding";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,27 +16,44 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const rockDisplay = RocknRoll_One({
-  weight: "400",
+const displayFont = Nunito({
+  weight: ["600", "700", "800"],
   subsets: ["latin"],
-  variable: "--font-rock",
-  display: "swap",
-});
-
-const jaggedDisplay = Slackside_One({
-  weight: "400",
-  subsets: ["latin"],
-  variable: "--font-jagged",
+  variable: "--font-display",
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: APP_NAME,
+  metadataBase: new URL(getAppUrl()),
+  title: {
+    default: APP_NAME,
+    template: `%s | ${APP_NAME}`,
+  },
   description: APP_DESCRIPTION,
+  applicationName: APP_NAME,
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
     title: APP_NAME,
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  openGraph: {
+    type: "website",
+    locale: "ja_JP",
+    siteName: APP_NAME,
+    title: APP_NAME,
+    description: APP_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary",
+    title: APP_NAME,
+    description: APP_DESCRIPTION,
+  },
+  icons: {
+    icon: [{ url: "/icons/icon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/icons/icon.svg", type: "image/svg+xml" }],
   },
 };
 
@@ -43,8 +62,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fafafa" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+    { media: "(prefers-color-scheme: light)", color: "#dce8f2" },
+    { media: "(prefers-color-scheme: dark)", color: "#2a3d4f" },
   ],
 };
 
@@ -54,11 +73,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja" className="dark" suppressHydrationWarning>
+    <html lang="ja" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${rockDisplay.variable} ${jaggedDisplay.variable} font-sans`}
+        className={`${geistSans.variable} ${geistMono.variable} ${displayFont.variable} font-sans`}
       >
-        <ThemeProvider>{children}</ThemeProvider>
+        <PoodlePlayground />
+        <ThemeProvider>
+          <div className="relative z-10">{children}</div>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -14,21 +14,32 @@ export function AppLogo({
   className = "",
 }: AppLogoProps) {
   const px = iconSizes[size];
+  const hasRecipeSuffix = APP_NAME.endsWith("レシピ");
+  const nameMain = hasRecipeSuffix
+    ? APP_NAME.slice(0, -"レシピ".length).trim()
+    : APP_NAME;
 
   return (
     <div className={`flex items-center gap-3 ${className}`}>
       <LogoMark size={px} />
       <div className="min-w-0">
         <p
-          className={`font-display logo-brand leading-none ${
-            size === "sm" ? "text-2xl" : "text-[1.9rem]"
+          className={`font-display logo-brand leading-tight ${
+            size === "sm" ? "text-base" : "text-[1.05rem]"
           }`}
           aria-label={APP_NAME}
         >
-          {APP_NAME}
+          {hasRecipeSuffix ? (
+            <>
+              <span className="block">{nameMain}</span>
+              <span className="block text-kitchen">レシピ</span>
+            </>
+          ) : (
+            APP_NAME
+          )}
         </p>
         {showTagline && (
-          <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+          <p className="mt-1 text-[10px] font-semibold tracking-widest text-kitchen-muted uppercase">
             {APP_TAGLINE}
           </p>
         )}
@@ -44,7 +55,6 @@ export function LogoMark({
   size?: number;
   className?: string;
 }) {
-  const id = `logo-grad-${size}`;
   return (
     <svg
       width={size}
@@ -52,20 +62,27 @@ export function LogoMark({
       viewBox="0 0 48 48"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className={`shrink-0 drop-shadow-[0_0_12px_rgba(255,77,77,0.4)] ${className}`}
+      className={`shrink-0 drop-shadow-[0_3px_10px_rgba(91,143,173,0.25)] ${className}`}
       aria-hidden
     >
-      <defs>
-        <linearGradient id={id} x1="8" y1="4" x2="40" y2="44">
-          <stop offset="0%" stopColor="#ff5c5c" />
-          <stop offset="100%" stopColor="#e02020" />
-        </linearGradient>
-      </defs>
-      <rect x="2" y="2" width="44" height="44" rx="12" fill={`url(#${id})`} />
+      <rect x="2" y="2" width="44" height="44" rx="16" fill="#faf6ef" stroke="#b8cee0" strokeWidth="2" />
+      <ellipse cx="24" cy="38" rx="10" ry="3" fill="#c5d9ea" opacity="0.8" />
       <path
-        d="M27 9L17 27h7.5l-2.5 12 13-20H26.5L27 9z"
-        fill="white"
+        d="M16 36V22c0-5 3.5-9 8-9s8 4 8 9v14"
+        fill="#f5efe3"
+        stroke="#5b8fad"
+        strokeWidth="2"
+        strokeLinejoin="round"
       />
+      <path d="M12 22h24" stroke="#5b8fad" strokeWidth="2" strokeLinecap="round" />
+      <path
+        d="M20 16c0-4 2-7 4-7s4 3 4 7"
+        stroke="#8aa4b8"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        fill="none"
+      />
+      <circle cx="32" cy="14" r="2.5" fill="#d4c4a8" stroke="#8aa4b8" strokeWidth="1" />
     </svg>
   );
 }

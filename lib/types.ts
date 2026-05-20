@@ -1,86 +1,117 @@
-export type TaskStatus = "pending" | "completed" | "failed";
-export type NotificationChannel = "email" | "line";
-
 export interface User {
   id: string;
   display_name: string;
   created_at: string;
 }
 
-export interface Task {
+export interface Family {
   id: string;
+  name: string;
+  invite_code: string;
+  created_at: string;
+}
+
+export interface FamilyMember {
+  id: string;
+  family_id: string;
+  user_id: string;
+  display_name: string;
+  joined_at: string;
+}
+
+export type RecipeCategory = "staple" | "main" | "side" | "sweets" | "drink";
+
+export type RecipeEvent =
+  | "birthday"
+  | "anniversary"
+  | "holiday"
+  | "new_year"
+  | "christmas"
+  | "obon"
+  | "party"
+  | "everyday";
+
+export interface Recipe {
+  id: string;
+  family_id: string;
+  user_id: string;
+  author_name: string;
+  title: string;
+  description: string;
+  ingredients: string[];
+  steps: string[];
+  prep_minutes: number | null;
+  cook_minutes: number | null;
+  servings: number | null;
+  category: RecipeCategory;
+  events: RecipeEvent[];
+  tags: string[];
+  photo_url?: string | null;
+  created_at: string;
+  updated_at: string;
+  last_cooked_on?: string | null;
+  cook_count?: number;
+}
+
+export interface CookingLog {
+  id: string;
+  family_id: string;
+  recipe_id: string;
+  user_id: string;
+  cooked_by_name: string;
+  cooked_on: string;
+  note: string;
+  created_at: string;
+  recipe_title?: string;
+}
+
+export interface RecipeRequest {
+  id: string;
+  family_id: string;
+  user_id: string;
+  requester_name: string;
+  title: string;
+  note: string;
+  status: "open" | "done";
+  created_at: string;
+}
+
+export interface FamilyEvent {
+  id: string;
+  family_id: string;
   user_id: string;
   title: string;
-  deadline_at: string;
-  penalty_amount: number;
-  donation_destination: string;
-  donate_url: string | null;
-  status: TaskStatus;
-  completed_at: string | null;
-  failed_at: string | null;
+  event_type: string;
+  event_date: string;
+  created_at: string;
+}
+
+export interface FamilyLink {
+  id: string;
+  family_id: string;
+  user_id: string;
+  author_name: string;
+  title: string;
+  url: string;
+  note: string;
   created_at: string;
   updated_at: string;
 }
 
-export interface Failure {
-  id: string;
-  created_at: string;
-  title: string;
-  description: string;
-  donation_amount: number;
-  user_name: string;
-  task_id: string | null;
-  user_id: string | null;
-  donation_destination: string | null;
-  donate_url: string | null;
-  consecutive_fail_count?: number;
+export interface DashboardData {
+  recipes: Recipe[];
+  staleRecipes: Recipe[];
+  newRecipes: Recipe[];
+  cookingLogs: CookingLog[];
+  monthEvents: FamilyEvent[];
+  upcomingEvents: FamilyEvent[];
+  requests: RecipeRequest[];
 }
 
-export interface TimelinePost {
-  id: string;
-  task_id: string;
-  user_id: string;
-  display_name: string;
-  task_title: string;
-  penalty_amount: number;
-  donation_destination: string;
-  body: string;
-  created_at: string;
+export interface AdminRecipeRow extends Recipe {
+  family_name: string;
 }
 
-export interface NotificationTarget {
-  id: string;
-  task_id: string;
-  type: NotificationChannel;
-  label: string;
-  destination: string;
-  notified_at: string | null;
-  created_at: string;
-}
-
-export interface ConfessionPost {
-  id: string;
-  user_id: string | null;
-  display_name: string;
-  body: string;
-  parent_id: string | null;
-  comfort_count: number;
-  created_at: string;
-  replies?: ConfessionPost[];
-}
-
-export interface CreateTaskPayload {
-  userId?: string;
-  displayName: string;
-  title: string;
-  deadlineAt: string;
-  penaltyAmount: number;
-  donationDestination: string;
-  donateUrl?: string;
-  notifyName: string;
-  notifyEmail: string;
-}
-
-export interface TaskWithMeta extends Task {
-  consecutive_fail_count?: number;
+export interface FamilyInfo extends Family {
+  member_count: number;
 }

@@ -1,11 +1,7 @@
-export const USER_STORAGE_KEY = "fail_donate_user_id";
-export const USER_NAME_STORAGE_KEY = "fail_donate_display_name";
-
-export const SETROUNDLY_URL =
-  process.env.NEXT_PUBLIC_SETROUNDLY_URL ?? "https://setroundly.com";
-
-export const DEFAULT_DONATE_URL =
-  process.env.NEXT_PUBLIC_DEFAULT_DONATE_URL ?? "https://setroundly.com/donate";
+export const USER_STORAGE_KEY = "marutto_user_id";
+export const USER_NAME_STORAGE_KEY = "marutto_display_name";
+export const FAMILY_STORAGE_KEY = "marutto_family_id";
+export const FAMILY_NAME_STORAGE_KEY = "marutto_family_name";
 
 export function getAppBaseUrl() {
   return (

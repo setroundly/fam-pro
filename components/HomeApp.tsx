@@ -1,95 +1,148 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useTheme } from "next-themes";
-import { Timeline } from "./Timeline";
-import { TaskForm } from "./TaskForm";
-import { MyTasks } from "./MyTasks";
-import { ConfessionRoom } from "./ConfessionRoom";
 import { AppLogo } from "./AppLogo";
+import { FamilyLinksPanel } from "./FamilyLinksPanel";
+import { FamilyPanel } from "./FamilyPanel";
+import { HomeDashboard } from "./HomeDashboard";
+import { InstallHint } from "./InstallHint";
+import { RecipeDetail } from "./RecipeDetail";
+import { RecipeForm } from "./RecipeForm";
+import { COPY } from "@/lib/copy";
+import { getStoredFamilyId, getStoredFamilyName } from "@/lib/session";
 
-type Tab = "timeline" | "create" | "mine" | "confession";
+type Tab = "home" | "add" | "family" | "links";
 
 export function HomeApp() {
-  const [tab, setTab] = useState<Tab>("timeline");
-  const [taskRefresh, setTaskRefresh] = useState(0);
+  const [tab, setTab] = useState<Tab>("home");
+  const [recipeRefresh, setRecipeRefresh] = useState(0);
+  const [selectedRecipeId, setSelectedRecipeId] = useState<string | null>(null);
+  const [editingRecipeId, setEditingRecipeId] = useState<string | null>(null);
+  const [hasFamily, setHasFamily] = useState(() => Boolean(getStoredFamilyId()));
   const { theme, setTheme } = useTheme();
 
+  const refreshFamilyState = useCallback(() => {
+    setHasFamily(Boolean(getStoredFamilyId()));
+  }, []);
+
+  const bumpRefresh = useCallback(() => {
+    setRecipeRefresh((k) => k + 1);
+  }, []);
+
+  const familyName = getStoredFamilyName();
+
   return (
-    <div className="app-shell flex min-h-screen flex-col text-zinc-100">
-      <header className="sticky top-0 z-20 border-b border-fail-border bg-fail-bg px-4 py-3">
+    <div className="app-shell flex min-h-screen flex-col text-kitchen-ink">
+      <header className="sticky top-0 z-20 border-b-2 border-kitchen-border/80 bg-kitchen-bg/90 px-4 py-3 backdrop-blur-sm">
         <div className="flex items-center justify-between">
           <AppLogo />
           <button
             type="button"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="rounded-lg border border-fail-border px-3 py-1.5 text-xs text-zinc-400"
+            className="rounded-nord border-2 border-kitchen-border bg-kitchen-card px-3 py-1.5 text-xs text-kitchen-muted shadow-nord-sm"
             aria-label="テーマ切替"
           >
             {theme === "dark" ? "☀️" : "🌙"}
           </button>
         </div>
+        {hasFamily && familyName && (
+          <p className="mt-2 text-xs font-medium text-kitchen-muted">
+            {COPY.family.subtitle(familyName)}
+          </p>
+        )}
       </header>
 
       <main className="relative z-10 mx-auto w-full max-w-md flex-1 px-4 py-4 pb-24">
-        {tab === "timeline" && (
-          <section>
-            <h2 className="font-display mb-3 text-xl text-fail">失敗タイムライン</h2>
-            <Timeline />
-          </section>
-        )}
-        {tab === "create" && (
-          <section>
-            <h2 className="font-display mb-1 text-xl text-fail">覚悟を決める</h2>
-            <p className="text-empty-hint mb-5">
-              失敗したら、選んだ先へ強制送還。
-            </p>
-            <TaskForm
-              onCreated={() => {
-                setTaskRefresh((k) => k + 1);
-                setTab("mine");
+        {selectedRecipeId ? (
+          editingRecipeId === selectedRecipeId ? (
+            <RecipeForm
+              recipeId={selectedRecipeId}
+              onSaved={() => {
+                setEditingRecipeId(null);
+                bumpRefresh();
               }}
+              onCancel={() => setEditingRecipeId(null)}
             />
-          </section>
-        )}
-        {tab === "mine" && (
-          <section>
-            <h2 className="font-display mb-3 text-xl text-fail">自分のタスク</h2>
-            <MyTasks refreshKey={taskRefresh} />
-          </section>
-        )}
-        {tab === "confession" && (
-          <section>
-            <h2 className="font-display mb-1 text-xl text-fail">懺悔室</h2>
-            <ConfessionRoom />
-          </section>
+          ) : (
+            <RecipeDetail
+              recipeId={selectedRecipeId}
+              onBack={() => {
+                setSelectedRecipeId(null);
+                setEditingRecipeId(null);
+              }}
+              onEdit={() => setEditingRecipeId(selectedRecipeId)}
+              onCooked={bumpRefresh}
+            />
+          )
+        ) : (
+          <>
+            {tab === "home" && (
+              <section>
+                {!hasFamily ? (
+                  <p className="text-empty-hint text-left">{COPY.family.noFamily}</p>
+                ) : (
+                  <HomeDashboard
+                    refreshKey={recipeRefresh}
+                    onSelectRecipe={setSelectedRecipeId}
+                    onRefresh={bumpRefresh}
+                  />
+                )}
+              </section>
+            )}
+            {tab === "add" && (
+              <section>
+                <h2 className="section-title mb-1">思い出のレシピを残す</h2>
+                <p className="text-empty-hint mb-5 text-left">
+                  レシピは便利なメモであり、家族の時間をのこすアルバムでもあります。
+                </p>
+                <RecipeForm
+                  onSaved={() => {
+                    bumpRefresh();
+                    setTab("home");
+                  }}
+                />
+              </section>
+            )}
+            {tab === "family" && (
+              <section>
+                <h2 className="section-title mb-3">家族</h2>
+                <FamilyPanel onFamilyReady={refreshFamilyState} />
+              </section>
+            )}
+            {tab === "links" && (
+              <section>
+                {!hasFamily ? (
+                  <p className="text-empty-hint text-left">{COPY.family.noFamily}</p>
+                ) : (
+                  <FamilyLinksPanel />
+                )}
+              </section>
+            )}
+          </>
         )}
       </main>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-20 border-t border-fail-border bg-fail-card">
-        <div className="mx-auto flex max-w-md">
-          <TabButton
-            active={tab === "timeline"}
-            onClick={() => setTab("timeline")}
-            label="タイムライン"
-          />
-          <TabButton
-            active={tab === "create"}
-            onClick={() => setTab("create")}
-            label="作成"
-          />
-          <TabButton
-            active={tab === "mine"}
-            onClick={() => setTab("mine")}
-            label="自分"
-          />
-          <TabButton
-            active={tab === "confession"}
-            onClick={() => setTab("confession")}
-            label="懺悔室"
-          />
-        </div>
-      </nav>
+      {!selectedRecipeId && <InstallHint />}
+
+      {!selectedRecipeId && (
+        <nav className="fixed bottom-0 left-0 right-0 z-20 border-t-2 border-kitchen-border bg-kitchen-card/95 backdrop-blur-sm">
+          <div className="mx-auto flex max-w-md">
+            <TabButton active={tab === "home"} onClick={() => setTab("home")} label="ホーム" />
+            <TabButton active={tab === "add"} onClick={() => setTab("add")} label="追加" />
+            <TabButton
+              active={tab === "family"}
+              onClick={() => setTab("family")}
+              label="家族"
+            />
+            <TabButton
+              active={tab === "links"}
+              onClick={() => setTab("links")}
+              label="リンク"
+            />
+          </div>
+        </nav>
+      )}
     </div>
   );
 }
@@ -107,10 +160,10 @@ function TabButton({
     <button
       type="button"
       onClick={onClick}
-      className={`flex-1 py-3 text-center text-xs font-semibold transition ${
+      className={`flex-1 py-3 text-center text-xs font-bold transition ${
         active
-          ? "text-fail border-t-2 border-fail"
-          : "text-zinc-500 border-t-2 border-transparent"
+          ? "border-t-[3px] border-kitchen bg-kitchen-cream/50 text-kitchen"
+          : "border-t-[3px] border-transparent text-kitchen-muted"
       }`}
     >
       {label}

@@ -1,0 +1,253 @@
+/* トイプードル背景アニメーション（@layer 外 = 確実に出力） */
+
+.poodle-playground {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.poodle-angel-layer {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 25;
+}
+
+.poodle-runner {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 72px;
+  height: 52px;
+  opacity: 0.55;
+  will-change: transform;
+}
+
+html.dark .poodle-runner {
+  opacity: 0.38;
+}
+
+.poodle-angel {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 52px;
+  height: 44px;
+  opacity: 0.42;
+  will-change: transform;
+  -webkit-animation: poodle-angel-path 36s ease-in-out infinite;
+  animation: poodle-angel-path 36s ease-in-out infinite;
+}
+
+html.dark .poodle-angel {
+  opacity: 0.28;
+}
+
+.poodle-angel-float {
+  width: 100%;
+  height: 100%;
+  -webkit-animation: poodle-angel-bob 3.2s ease-in-out infinite;
+  animation: poodle-angel-bob 3.2s ease-in-out infinite;
+}
+
+@keyframes poodle-angel-path {
+  0% {
+    transform: translate(-8vw, 8vh) rotate(-6deg);
+  }
+  25% {
+    transform: translate(28vw, 5vh) rotate(4deg);
+  }
+  50% {
+    transform: translate(58vw, 10vh) rotate(-3deg);
+  }
+  75% {
+    transform: translate(82vw, 6vh) rotate(5deg);
+  }
+  100% {
+    transform: translate(108vw, 9vh) rotate(-4deg);
+  }
+}
+
+@keyframes poodle-angel-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.poodle-runner-a {
+  -webkit-animation: poodle-path-a 18s linear infinite;
+  animation: poodle-path-a 18s linear infinite;
+}
+
+.poodle-runner-b {
+  width: 56px;
+  height: 40px;
+  opacity: 0.5;
+  -webkit-animation: poodle-path-b 24s linear infinite;
+  animation: poodle-path-b 24s linear infinite;
+}
+
+html.dark .poodle-runner-b {
+  opacity: 0.3;
+}
+
+.poodle-bounce {
+  width: 100%;
+  height: 100%;
+  -webkit-animation: poodle-hop 0.4s ease-in-out infinite;
+  animation: poodle-hop 0.4s ease-in-out infinite;
+}
+
+.poodle-bounce-delay {
+  animation-delay: 0.15s;
+}
+
+/* Chrome 等: CSS アニメーション（Safari は SMIL が担当） */
+.poodle-leg {
+  -webkit-animation: poodle-leg 0.34s ease-in-out infinite alternate;
+  animation: poodle-leg 0.34s ease-in-out infinite alternate;
+}
+
+.poodle-leg-bl {
+  -webkit-transform-origin: 24.5px 38px;
+  transform-origin: 24.5px 38px;
+  animation-delay: 0.17s;
+}
+
+.poodle-leg-br {
+  -webkit-transform-origin: 32.5px 38px;
+  transform-origin: 32.5px 38px;
+}
+
+.poodle-leg-fl {
+  -webkit-transform-origin: 48.5px 38px;
+  transform-origin: 48.5px 38px;
+  animation-delay: 0.17s;
+}
+
+.poodle-leg-fr {
+  -webkit-transform-origin: 56.5px 38px;
+  transform-origin: 56.5px 38px;
+}
+
+.poodle-tail-wag {
+  -webkit-transform-origin: 8px 28px;
+  transform-origin: 8px 28px;
+  -webkit-animation: poodle-tail 0.28s ease-in-out infinite alternate;
+  animation: poodle-tail 0.28s ease-in-out infinite alternate;
+}
+
+@keyframes poodle-leg {
+  from {
+    -webkit-transform: rotate(-22deg);
+    transform: rotate(-22deg);
+  }
+  to {
+    -webkit-transform: rotate(22deg);
+    transform: rotate(22deg);
+  }
+}
+
+@keyframes poodle-tail {
+  from {
+    -webkit-transform: rotate(-18deg);
+    transform: rotate(-18deg);
+  }
+  to {
+    -webkit-transform: rotate(22deg);
+    transform: rotate(22deg);
+  }
+}
+
+@keyframes poodle-path-a {
+  0% {
+    transform: translate(-4vw, 72vh) scaleX(1) rotate(-5deg);
+  }
+  20% {
+    transform: translate(40vw, 78vh) scaleX(1) rotate(3deg);
+  }
+  40% {
+    transform: translate(86vw, 68vh) scaleX(1) rotate(-2deg);
+  }
+  55% {
+    transform: translate(88vw, 42vh) scaleX(-1) rotate(4deg);
+  }
+  70% {
+    transform: translate(48vw, 32vh) scaleX(-1) rotate(-3deg);
+  }
+  85% {
+    transform: translate(8vw, 38vh) scaleX(-1) rotate(2deg);
+  }
+  100% {
+    transform: translate(-4vw, 72vh) scaleX(1) rotate(-5deg);
+  }
+}
+
+@keyframes poodle-path-b {
+  0% {
+    transform: translate(84vw, 50vh) scaleX(-1) rotate(4deg);
+  }
+  25% {
+    transform: translate(44vw, 82vh) scaleX(-1) rotate(-2deg);
+  }
+  45% {
+    transform: translate(6vw, 62vh) scaleX(1) rotate(3deg);
+  }
+  60% {
+    transform: translate(14vw, 22vh) scaleX(1) rotate(-4deg);
+  }
+  75% {
+    transform: translate(52vw, 14vh) scaleX(-1) rotate(3deg);
+  }
+  90% {
+    transform: translate(78vw, 28vh) scaleX(-1) rotate(-2deg);
+  }
+  100% {
+    transform: translate(84vw, 50vh) scaleX(-1) rotate(4deg);
+  }
+}
+
+@keyframes poodle-hop {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .poodle-angel {
+    animation: poodle-angel-path 90s ease-in-out infinite;
+  }
+
+  .poodle-angel-float {
+    animation: none;
+  }
+
+  .poodle-runner-a {
+    animation: poodle-path-a 48s linear infinite;
+  }
+
+  .poodle-runner-b {
+    animation: poodle-path-b 56s linear infinite;
+  }
+
+  .poodle-bounce {
+    animation: none;
+  }
+
+  .poodle-leg,
+  .poodle-tail-wag {
+    -webkit-animation: none;
+    animation: none;
+  }
+}
