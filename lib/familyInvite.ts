@@ -1,5 +1,5 @@
 import { getAppBaseUrl } from "./constants";
-import { getFamilyBackup, getStoredFamilyId } from "./session";
+import { getFamilyBackup, getStoredFamilyId, restoreSession } from "./session";
 
 const INVITE_PATTERN = /^[A-Z2-9]{6}$/;
 
@@ -13,6 +13,7 @@ export function parseInviteCode(raw: string | null | undefined): string | null {
 export function isActiveFamilyInvite(inviteCode: string): boolean {
   const code = parseInviteCode(inviteCode);
   if (!code) return false;
+  restoreSession();
   const familyId = getStoredFamilyId();
   const backup = getFamilyBackup();
   return Boolean(familyId && backup?.inviteCode === code);

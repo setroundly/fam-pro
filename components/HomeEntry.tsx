@@ -4,10 +4,11 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { HomeApp } from "@/components/HomeApp";
 import { familyJoinPath, getActiveInviteCode } from "@/lib/familyInvite";
-import { getStoredFamilyId } from "@/lib/session";
+import { getStoredFamilyId, restoreSession } from "@/lib/session";
 
 export function HomeEntry() {
   const router = useRouter();
+  restoreSession();
   const inviteCode = getActiveInviteCode();
   const hasFamily = Boolean(getStoredFamilyId());
 

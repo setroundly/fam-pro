@@ -7,7 +7,6 @@ import {
   getStoredDisplayName,
   getStoredFamilyId,
   getStoredUserId,
-  saveFamilyBackup,
   saveSession,
 } from "@/lib/session";
 import type { Family, User } from "@/lib/types";
@@ -87,10 +86,7 @@ export function FamilyInviteLanding({
         displayName: data.user.display_name,
         familyId: data.family.id,
         familyName: data.family.name,
-      });
-      saveFamilyBackup({
         inviteCode: data.family.invite_code,
-        familyName: data.family.name,
       });
       onJoined();
     } catch (err) {

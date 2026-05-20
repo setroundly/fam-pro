@@ -114,4 +114,5 @@ export interface AdminRecipeRow extends Recipe {
 
 export interface FamilyInfo extends Family {
   member_count: number;
+  members?: FamilyMember[];
 }

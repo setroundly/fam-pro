@@ -10,8 +10,8 @@ import {
   clearFamilySession,
   getStoredDisplayName,
   getStoredFamilyId,
+  getStoredFamilyName,
   getStoredUserId,
-  saveFamilyBackup,
   saveSession,
 } from "@/lib/session";
 import type { Family, FamilyInfo, User } from "@/lib/types";
@@ -20,9 +20,10 @@ type Mode = "choose" | "create" | "join";
 
 interface FamilyPanelProps {
   onFamilyReady: () => void;
+  refreshKey?: number;
 }
 
-export function FamilyPanel({ onFamilyReady }: FamilyPanelProps) {
+export function FamilyPanel({ onFamilyReady, refreshKey = 0 }: FamilyPanelProps) {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>("choose");
   const [displayName, setDisplayName] = useState("");
@@ -30,12 +31,15 @@ export function FamilyPanel({ onFamilyReady }: FamilyPanelProps) {
   const [inviteCode, setInviteCode] = useState("");
   const [familyInfo, setFamilyInfo] = useState<FamilyInfo | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingFamily, setLoadingFamily] = useState(false);
+  const [deletingMemberId, setDeletingMemberId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [exporting, setExporting] = useState(false);
 
   const familyId = getStoredFamilyId();
+  const currentUserId = getStoredUserId();
 
   const loadFamily = useCallback(async () => {
     const id = getStoredFamilyId();
@@ -44,22 +48,44 @@ export function FamilyPanel({ onFamilyReady }: FamilyPanelProps) {
       return;
     }
 
-    const { res, data } = await fetchJson<{ family?: FamilyInfo; error?: string }>(
-      `/api/families?familyId=${id}`
-    );
-    if (res.ok && data.family) {
+    setLoadingFamily(true);
+    setError(null);
+    try {
+      const { res, data } = await fetchJson<{ family?: FamilyInfo; error?: string }>(
+        `/api/families?familyId=${id}`
+      );
+      if (!res.ok || !data.family) {
+        throw new Error(apiErrorMessage(data, "家族情報の取得に失敗しました"));
+      }
+
       setFamilyInfo(data.family);
-      saveFamilyBackup({
-        inviteCode: data.family.invite_code,
-        familyName: data.family.name,
-      });
+
+      const userId = getStoredUserId();
+      if (userId) {
+        const previousName = getStoredFamilyName();
+        saveSession({
+          userId,
+          displayName: getStoredDisplayName(),
+          familyId: data.family.id,
+          familyName: data.family.name,
+          inviteCode: data.family.invite_code,
+        });
+        if (!previousName && data.family.name) {
+          onFamilyReady();
+        }
+      }
+    } catch (err) {
+      setFamilyInfo(null);
+      setError(err instanceof Error ? err.message : "家族情報の取得に失敗しました");
+    } finally {
+      setLoadingFamily(false);
     }
-  }, []);
+  }, [onFamilyReady]);
 
   useEffect(() => {
     setDisplayName(getStoredDisplayName());
     void loadFamily();
-  }, [loadFamily]);
+  }, [loadFamily, refreshKey]);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -106,12 +132,9 @@ export function FamilyPanel({ onFamilyReady }: FamilyPanelProps) {
       displayName: user.display_name,
       familyId: family.id,
       familyName: family.name,
-    });
-    saveFamilyBackup({
       inviteCode: family.invite_code,
-      familyName: family.name,
     });
-    setFamilyInfo({ ...family, member_count: 1 });
+    setFamilyInfo({ ...family, member_count: 1, members: [] });
     setMode("choose");
     onFamilyReady();
     void loadFamily();
@@ -124,6 +147,47 @@ export function FamilyPanel({ onFamilyReady }: FamilyPanelProps) {
     setFamilyInfo(null);
     setMode("choose");
     onFamilyReady();
+  }
+
+  async function deleteMember(memberId: string, memberName: string, memberUserId: string) {
+    const id = getStoredFamilyId();
+    const userId = getStoredUserId();
+    if (!id || !userId) return;
+
+    const isSelf = memberUserId === userId;
+    const message = isSelf
+      ? "自分をメンバーから外しますか？再度リンクから参加できます。"
+      : `「${memberName}」をメンバーから外しますか？`;
+
+    if (!confirm(message)) return;
+
+    setDeletingMemberId(memberId);
+    setError(null);
+    try {
+      const { res, data } = await fetchJson<{ deleted?: boolean; wasSelf?: boolean; error?: string }>(
+        `/api/families/members/${memberId}?familyId=${encodeURIComponent(id)}&userId=${encodeURIComponent(userId)}`,
+        { method: "DELETE" }
+      );
+      if (!res.ok || !data.deleted) {
+        throw new Error(apiErrorMessage(data, "メンバーの削除に失敗しました"));
+      }
+
+      if (data.wasSelf) {
+        clearFamilySession();
+        setFamilyInfo(null);
+        onFamilyReady();
+        if (familyInfo?.invite_code) {
+          router.replace(familyJoinPath(familyInfo.invite_code));
+        }
+        return;
+      }
+
+      await loadFamily();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "エラーが発生しました");
+    } finally {
+      setDeletingMemberId(null);
+    }
   }
 
   async function copyInviteCode() {
@@ -171,6 +235,10 @@ export function FamilyPanel({ onFamilyReady }: FamilyPanelProps) {
     }
   }
 
+  if (familyId && loadingFamily && !familyInfo) {
+    return <p className="text-empty-hint py-8">家族情報を読み込み中…</p>;
+  }
+
   if (familyId && familyInfo) {
     return (
       <div className="space-y-4">
@@ -182,6 +250,42 @@ export function FamilyPanel({ onFamilyReady }: FamilyPanelProps) {
           <p className="mt-2 text-sm text-kitchen-muted">
             メンバー {familyInfo.member_count} 人
           </p>
+        </div>
+
+        <div className="card-nord p-5">
+          <p className="text-sm font-semibold text-kitchen-ink">メンバー一覧</p>
+          <p className="text-empty-hint mt-1 text-left text-xs">
+            同じ名前が重複している場合は、不要な行を削除できます。
+          </p>
+          <ul className="mt-3 space-y-2">
+            {(familyInfo.members ?? []).map((member) => (
+              <li
+                key={member.id}
+                className="flex items-center justify-between gap-3 rounded-nord border border-kitchen-border bg-kitchen-cream/40 px-3 py-2"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-kitchen-ink">
+                    {member.display_name}
+                    {member.user_id === currentUserId && (
+                      <span className="ml-1.5 text-xs font-normal text-kitchen-muted">
+                        （あなた）
+                      </span>
+                    )}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  disabled={deletingMemberId === member.id}
+                  onClick={() =>
+                    void deleteMember(member.id, member.display_name, member.user_id)
+                  }
+                  className="shrink-0 rounded-nord border border-kitchen-border px-2 py-1 text-xs text-kitchen-muted transition hover:border-kitchen hover:text-kitchen disabled:opacity-50"
+                >
+                  {deletingMemberId === member.id ? "削除中…" : "削除"}
+                </button>
+              </li>
+            ))}
+          </ul>
         </div>
 
         <div className="card-nord border-dashed bg-kitchen-cream/50 p-5">
@@ -231,6 +335,10 @@ export function FamilyPanel({ onFamilyReady }: FamilyPanelProps) {
           <p className="text-empty-hint text-left text-[10px]">{COPY.family.exportHint}</p>
         </div>
 
+        {error && (
+          <p className="card-nord px-4 py-3 text-sm text-kitchen">{error}</p>
+        )}
+
         <button
           type="button"
           onClick={handleLeave}
@@ -242,8 +350,15 @@ export function FamilyPanel({ onFamilyReady }: FamilyPanelProps) {
     );
   }
 
-  if (familyId && !familyInfo) {
-    return <p className="text-empty-hint py-8">家族情報を読み込み中…</p>;
+  if (familyId && !familyInfo && error) {
+    return (
+      <div className="space-y-3 py-4">
+        <p className="card-nord px-4 py-3 text-sm text-kitchen">{error}</p>
+        <button type="button" onClick={() => void loadFamily()} className="btn-secondary w-full">
+          再読み込み
+        </button>
+      </div>
+    );
   }
 
   return (

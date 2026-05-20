@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { AppLogo } from "@/components/AppLogo";
 import { FamilyInviteLanding } from "@/components/FamilyInviteLanding";
 import { HomeApp } from "@/components/HomeApp";
-import { isActiveFamilyInvite } from "@/lib/familyInvite";
+import { verifyFamilyMembership } from "@/lib/familyMembership";
+import { isActiveFamilyInvite, parseInviteCode } from "@/lib/familyInvite";
+import { getStoredFamilyId, getStoredUserId, restoreSession } from "@/lib/session";
 
 export function FamilyJoinHub({ inviteCode }: { inviteCode: string }) {
   const router = useRouter();
@@ -13,8 +15,34 @@ export function FamilyJoinHub({ inviteCode }: { inviteCode: string }) {
   const [isMember, setIsMember] = useState(false);
 
   useEffect(() => {
-    setIsMember(isActiveFamilyInvite(inviteCode));
-    setReady(true);
+    async function init() {
+      const code = parseInviteCode(inviteCode);
+      if (!code) {
+        setIsMember(false);
+        setReady(true);
+        return;
+      }
+
+      const restored = restoreSession();
+      const userId = restored?.userId ?? getStoredUserId();
+      const familyId = restored?.familyId ?? getStoredFamilyId();
+      const matchesInvite =
+        restored?.inviteCode === code || isActiveFamilyInvite(code);
+
+      if (userId && familyId && matchesInvite) {
+        const ok = await verifyFamilyMembership(familyId, userId);
+        if (ok) {
+          setIsMember(true);
+          setReady(true);
+          return;
+        }
+      }
+
+      setIsMember(false);
+      setReady(true);
+    }
+
+    void init();
   }, [inviteCode]);
 
   if (!ready) {

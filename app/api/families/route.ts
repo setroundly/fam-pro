@@ -35,13 +35,22 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "家族が見つかりません" }, { status: 404 });
     }
 
-    const { count } = await supabase
+    const { data: members, error: membersError } = await supabase
       .from("family_members")
-      .select("*", { count: "exact", head: true })
-      .eq("family_id", familyId);
+      .select("id, family_id, user_id, display_name, joined_at")
+      .eq("family_id", familyId)
+      .order("joined_at", { ascending: true });
+
+    if (membersError) {
+      return NextResponse.json({ error: membersError.message }, { status: 500 });
+    }
 
     return NextResponse.json({
-      family: { ...family, member_count: count ?? 0 },
+      family: {
+        ...family,
+        member_count: members?.length ?? 0,
+        members: members ?? [],
+      },
     });
   } catch (err) {
     return apiErrorResponse(err);
