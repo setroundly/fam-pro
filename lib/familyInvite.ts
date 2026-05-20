@@ -11,5 +11,5 @@ export function parseInviteCode(raw: string | null | undefined): string | null {
 
 export function buildFamilyInviteUrl(inviteCode: string): string {
   const base = getAppBaseUrl().replace(/\/$/, "");
-  return `${base}/?join=${inviteCode}`;
+  return `${base}/join/${inviteCode}`;
 }

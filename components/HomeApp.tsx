@@ -1,18 +1,20 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTheme } from "next-themes";
 import { AppLogo } from "./AppLogo";
+import { FamilyInviteLanding } from "./FamilyInviteLanding";
 import { FamilyLinksPanel } from "./FamilyLinksPanel";
 import { FamilyPanel } from "./FamilyPanel";
+import { FamilyReconnectBanner } from "./FamilyReconnectBanner";
 import { HomeDashboard } from "./HomeDashboard";
 import { InstallHint } from "./InstallHint";
 import { RecipeDetail } from "./RecipeDetail";
 import { RecipeForm } from "./RecipeForm";
 import { COPY } from "@/lib/copy";
 import { parseInviteCode } from "@/lib/familyInvite";
-import { getStoredFamilyId, getStoredFamilyName } from "@/lib/session";
+import { getStoredFamilyId, getStoredFamilyName, getFamilyBackup } from "@/lib/session";
 
 type Tab = "home" | "add" | "family" | "links";
 
@@ -23,6 +25,11 @@ export function HomeApp() {
 
   const [tab, setTab] = useState<Tab>(() => (joinFromUrl ? "family" : "home"));
   const [inviteFromUrl] = useState(() => joinFromUrl);
+  const [reconnectInvite, setReconnectInvite] = useState<string | undefined>();
+  const [dismissInvite, setDismissInvite] = useState(false);
+  const [showReconnectBanner, setShowReconnectBanner] = useState(
+    () => !getStoredFamilyId() && Boolean(getFamilyBackup())
+  );
   const [recipeRefresh, setRecipeRefresh] = useState(0);
   const [selectedRecipeId, setSelectedRecipeId] = useState<string | null>(null);
   const [editingRecipeId, setEditingRecipeId] = useState<string | null>(null);
@@ -38,12 +45,17 @@ export function HomeApp() {
   }, []);
 
   const familyName = getStoredFamilyName();
+  const familyBackup = showReconnectBanner && !hasFamily ? getFamilyBackup() : null;
+  const activeInviteCode = dismissInvite ? undefined : inviteFromUrl ?? reconnectInvite;
+  const showInviteLanding = Boolean(activeInviteCode && !hasFamily && !selectedRecipeId);
 
-  useEffect(() => {
-    if (!joinFromUrl || getStoredFamilyId()) return;
-    setTab("family");
-    router.replace("/", { scroll: false });
-  }, [joinFromUrl, router]);
+  function handleInviteJoined() {
+    setReconnectInvite(undefined);
+    setDismissInvite(false);
+    refreshFamilyState();
+    setTab("home");
+    router.replace("/");
+  }
 
   return (
     <div className="app-shell flex min-h-screen flex-col text-kitchen-ink">
@@ -67,7 +79,27 @@ export function HomeApp() {
       </header>
 
       <main className="relative z-10 mx-auto w-full max-w-md flex-1 px-4 py-4 pb-24">
-        {selectedRecipeId ? (
+        {familyBackup && tab === "home" && !showInviteLanding && (
+          <FamilyReconnectBanner
+            backup={familyBackup}
+            onReconnect={() => {
+              setReconnectInvite(familyBackup.inviteCode);
+              setShowReconnectBanner(false);
+            }}
+            onDismiss={() => setShowReconnectBanner(false)}
+          />
+        )}
+        {showInviteLanding && activeInviteCode ? (
+          <FamilyInviteLanding
+            inviteCode={activeInviteCode}
+            onJoined={handleInviteJoined}
+            onCreateFamily={() => {
+              setDismissInvite(true);
+              setReconnectInvite(undefined);
+              setTab("family");
+            }}
+          />
+        ) : selectedRecipeId ? (
           editingRecipeId === selectedRecipeId ? (
             <RecipeForm
               recipeId={selectedRecipeId}
@@ -120,10 +152,7 @@ export function HomeApp() {
             {tab === "family" && (
               <section>
                 <h2 className="section-title mb-3">家族</h2>
-                <FamilyPanel
-                  onFamilyReady={refreshFamilyState}
-                  initialInviteCode={inviteFromUrl ?? undefined}
-                />
+                <FamilyPanel onFamilyReady={refreshFamilyState} />
               </section>
             )}
             {tab === "links" && (
@@ -139,9 +168,9 @@ export function HomeApp() {
         )}
       </main>
 
-      {!selectedRecipeId && <InstallHint />}
+      {!selectedRecipeId && !showInviteLanding && <InstallHint />}
 
-      {!selectedRecipeId && (
+      {!selectedRecipeId && !showInviteLanding && (
         <nav className="fixed bottom-0 left-0 right-0 z-20 border-t-2 border-kitchen-border bg-kitchen-card/95 backdrop-blur-sm">
           <div className="mx-auto flex max-w-md">
             <TabButton active={tab === "home"} onClick={() => setTab("home")} label="ホーム" />
