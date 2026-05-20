@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Field } from "@/components/ui/Field";
 import { apiErrorMessage, fetchJson } from "@/lib/fetchJson";
 import { COPY } from "@/lib/copy";
-import { buildFamilyInviteUrl, parseInviteCode } from "@/lib/familyInvite";
+import { buildFamilyInviteUrl, familyJoinPath, parseInviteCode } from "@/lib/familyInvite";
 import {
   clearFamilySession,
   getStoredDisplayName,
@@ -115,6 +115,7 @@ export function FamilyPanel({ onFamilyReady }: FamilyPanelProps) {
     setMode("choose");
     onFamilyReady();
     void loadFamily();
+    router.replace(familyJoinPath(family.invite_code));
   }
 
   function handleLeave() {
@@ -186,6 +187,9 @@ export function FamilyPanel({ onFamilyReady }: FamilyPanelProps) {
         <div className="card-nord border-dashed bg-kitchen-cream/50 p-5">
           <p className="text-sm font-semibold text-kitchen-ink">家族を招待</p>
           <p className="text-empty-hint mt-1 text-left">{COPY.family.inviteLinkHint}</p>
+          <p className="mt-2 truncate text-xs text-kitchen-muted">
+            {buildFamilyInviteUrl(familyInfo.invite_code)}
+          </p>
           <button
             type="button"
             onClick={() => void copyInviteLink()}

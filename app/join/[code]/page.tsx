@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { FamilyInviteJoinPage } from "@/components/FamilyInviteJoinPage";
+import { FamilyJoinHub } from "@/components/FamilyJoinHub";
 import { parseInviteCode } from "@/lib/familyInvite";
 
 export default async function JoinPage({
@@ -16,7 +16,7 @@ export default async function JoinPage({
 
   return (
     <Suspense fallback={<p className="text-empty-hint p-8">読み込み中…</p>}>
-      <FamilyInviteJoinPage inviteCode={inviteCode} />
+      <FamilyJoinHub inviteCode={inviteCode} />
     </Suspense>
   );
 }

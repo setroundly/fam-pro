@@ -1,10 +1,10 @@
 import { Suspense } from "react";
-import { HomeApp } from "@/components/HomeApp";
+import { HomeEntry } from "@/components/HomeEntry";
 
 export default function HomePage() {
   return (
     <Suspense fallback={<p className="text-empty-hint p-8">読み込み中…</p>}>
-      <HomeApp />
+      <HomeEntry />
     </Suspense>
   );
 }
