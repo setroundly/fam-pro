@@ -46,6 +46,7 @@ export const COPY = {
     inviteWelcome:
       "このレシピ帳は家族で共有されています。名前を入れて参加してください。",
     inviteLinkHint: "このリンクを送るだけで参加できます（コードの入力は不要です）。",
+    codeHint: "コードを入力すると /join/コード の参加ページ（リンクと同じ画面）へ進みます。",
     dataSafeNote:
       "レシピの本体は Supabase（クラウド）に保存されています。アプリの URL が変わっても消えません。",
     backupHint:

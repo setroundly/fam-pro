@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Field } from "@/components/ui/Field";
 import { apiErrorMessage, fetchJson } from "@/lib/fetchJson";
 import { COPY } from "@/lib/copy";
-import { buildFamilyInviteUrl } from "@/lib/familyInvite";
+import { buildFamilyInviteUrl, parseInviteCode } from "@/lib/familyInvite";
 import {
   clearFamilySession,
   getStoredDisplayName,
@@ -22,6 +23,7 @@ interface FamilyPanelProps {
 }
 
 export function FamilyPanel({ onFamilyReady }: FamilyPanelProps) {
+  const router = useRouter();
   const [mode, setMode] = useState<Mode>("choose");
   const [displayName, setDisplayName] = useState("");
   const [familyName, setFamilyName] = useState("");
@@ -87,32 +89,15 @@ export function FamilyPanel({ onFamilyReady }: FamilyPanelProps) {
     }
   }
 
-  async function handleJoin(e: React.FormEvent) {
+  function handleJoin(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    setLoading(true);
-    try {
-      const { res, data } = await fetchJson<{ user?: User; family?: Family; error?: string }>(
-        "/api/families/join",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userId: getStoredUserId() ?? undefined,
-            displayName: displayName.trim(),
-            inviteCode: inviteCode.trim().toUpperCase(),
-          }),
-        }
-      );
-      if (!res.ok || !data.user || !data.family) {
-        throw new Error(apiErrorMessage(data, "参加に失敗しました"));
-      }
-      finishJoin(data.user, data.family);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "エラーが発生しました");
-    } finally {
-      setLoading(false);
+    const code = parseInviteCode(inviteCode);
+    if (!code) {
+      setError("6文字のコードを確認してください");
+      return;
     }
+    router.push(`/join/${code}`);
   }
 
   function finishJoin(user: User, family: Family) {
@@ -284,16 +269,18 @@ export function FamilyPanel({ onFamilyReady }: FamilyPanelProps) {
           onSubmit={mode === "create" ? handleCreate : handleJoin}
           className="space-y-4"
         >
-          <Field label="あなたの名前" required>
-            <input
-              className="input"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="たろう"
-              maxLength={32}
-              required
-            />
-          </Field>
+          {mode === "create" && (
+            <Field label="あなたの名前" required>
+              <input
+                className="input"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="たろう"
+                maxLength={32}
+                required
+              />
+            </Field>
+          )}
 
           {mode === "create" ? (
             <Field label="家族の名前" required hint="例: 田中家、ママの台所">
@@ -307,7 +294,7 @@ export function FamilyPanel({ onFamilyReady }: FamilyPanelProps) {
               />
             </Field>
           ) : (
-            <Field label="招待コード（6文字）" required>
+            <Field label="招待コード（6文字）" required hint={COPY.family.codeHint}>
               <input
                 className="input font-mono uppercase tracking-widest"
                 value={inviteCode}
@@ -329,7 +316,7 @@ export function FamilyPanel({ onFamilyReady }: FamilyPanelProps) {
           )}
 
           <button type="submit" disabled={loading} className="btn-primary w-full">
-            {loading ? "処理中…" : mode === "create" ? "家族を作成" : "参加する"}
+            {loading ? "処理中…" : mode === "create" ? "家族を作成" : "参加ページへ"}
           </button>
 
           <button
