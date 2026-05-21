@@ -2,11 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { CategoryPicker, EventPicker } from "@/components/RecipeMetaChips";
+import { IngredientList } from "@/components/IngredientList";
 import { Field } from "@/components/ui/Field";
 import { apiErrorMessage, fetchJson } from "@/lib/fetchJson";
 import { COPY } from "@/lib/copy";
 import type { RecipeCategory, RecipeEvent } from "@/lib/recipeMeta";
-import { arrayToLines } from "@/lib/recipeText";
+import { arrayToLines, linesToArray } from "@/lib/recipeText";
 import {
   getStoredDisplayName,
   getStoredFamilyId,
@@ -330,13 +331,25 @@ export function RecipeForm({ recipeId, onSaved, onCancel }: RecipeFormProps) {
         )}
       </Field>
 
-      <Field label="材料" required hint="1行に1つ（例: じゃがいも 3個）">
+      <Field
+        label="材料"
+        required
+        hint="1行1材料。名前と量の間は全角スペース（　）かタブで区切ると、量が縦に揃って見えます"
+      >
         <textarea
-          className="input min-h-[120px] resize-y font-mono text-sm"
+          className="input ingredient-input min-h-[120px] resize-y font-mono text-sm leading-relaxed"
           value={ingredientsText}
           onChange={(e) => setIngredientsText(e.target.value)}
+          placeholder={"ジャガイモ　　3個\n塩　　　　　　小さじ1\n玉ねぎ　　　　1/2個"}
+          spellCheck={false}
           required
         />
+        {ingredientsText.trim() ? (
+          <div className="mt-3 rounded-nord border border-kitchen-border bg-kitchen-cream/40 p-4">
+            <p className="mb-2 text-xs font-semibold text-kitchen-muted">表示プレビュー</p>
+            <IngredientList items={linesToArray(ingredientsText)} />
+          </div>
+        ) : null}
       </Field>
 
       <Field label="作り方" required hint="1行に1ステップ">

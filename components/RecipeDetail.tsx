@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { RecipeMetaBadges } from "@/components/RecipeBadges";
+import { IngredientList } from "@/components/IngredientList";
 import { COPY } from "@/lib/copy";
 import { formatJaDate } from "@/lib/dates";
 import { getCategoryEmoji } from "@/lib/recipeMeta";
@@ -174,14 +175,9 @@ export function RecipeDetail({ recipeId, onBack, onEdit, onCooked }: RecipeDetai
 
       <section className="card-nord p-5">
         <h3 className="font-display font-semibold text-kitchen">材料</h3>
-        <ul className="mt-3 space-y-2.5">
-          {recipe.ingredients.map((item) => (
-            <li key={item} className="flex gap-2.5 text-sm text-kitchen-ink">
-              <span className="font-bold text-kitchen">·</span>
-              <span>{item}</span>
-            </li>
-          ))}
-        </ul>
+        <div className="mt-3">
+          <IngredientList items={recipe.ingredients} />
+        </div>
       </section>
 
       <section className="card-nord p-5">
