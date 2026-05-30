@@ -166,3 +166,28 @@ create policy "cooking_logs_all" on public.cooking_logs for all using (true) wit
 create policy "recipe_requests_all" on public.recipe_requests for all using (true) with check (true);
 create policy "family_events_all" on public.family_events for all using (true) with check (true);
 create policy "family_links_all" on public.family_links for all using (true) with check (true);
+
+-- レシピ写真（Storage）
+alter table public.recipes
+  add column if not exists photo_url text;
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'recipe-photos',
+  'recipe-photos',
+  true,
+  5242880,
+  array['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+)
+on conflict (id) do update set
+  public = excluded.public,
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
+
+do $$ begin
+  create policy "recipe_photos_public_read"
+  on storage.objects for select
+  to public
+  using (bucket_id = 'recipe-photos');
+exception when duplicate_object then null;
+end $$;

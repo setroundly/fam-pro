@@ -2,11 +2,16 @@ import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { apiErrorResponse, supabaseConfigResponse } from "@/lib/apiRoute";
 import {
+  isRecipePhotoBucketMissing,
   RECIPE_PHOTO_BUCKET,
   RECIPE_PHOTO_MAX_BYTES,
   recipePhotoExtension,
   recipePhotoPublicUrl,
 } from "@/lib/recipePhoto";
+import {
+  ensureRecipePhotoBucket,
+  recipePhotoUploadErrorMessage,
+} from "@/lib/recipePhotoStorage";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
 export async function POST(request: NextRequest) {
@@ -43,17 +48,36 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = getSupabaseAdmin();
+
+    const bucketReady = await ensureRecipePhotoBucket(supabase);
+    if (!bucketReady.ok) {
+      return NextResponse.json(
+        { error: recipePhotoUploadErrorMessage(bucketReady.error) },
+        { status: 500 }
+      );
+    }
+
     const path = `${familyId}/${randomUUID()}.${ext}`;
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    const { error } = await supabase.storage.from(RECIPE_PHOTO_BUCKET).upload(path, buffer, {
+    let { error } = await supabase.storage.from(RECIPE_PHOTO_BUCKET).upload(path, buffer, {
       contentType: file.type,
       upsert: false,
     });
 
+    if (error && isRecipePhotoBucketMissing(error.message)) {
+      const retry = await ensureRecipePhotoBucket(supabase);
+      if (retry.ok) {
+        ({ error } = await supabase.storage.from(RECIPE_PHOTO_BUCKET).upload(path, buffer, {
+          contentType: file.type,
+          upsert: false,
+        }));
+      }
+    }
+
     if (error) {
       return NextResponse.json(
-        { error: error.message || "写真のアップロードに失敗しました" },
+        { error: recipePhotoUploadErrorMessage(error.message) },
         { status: 500 }
       );
     }

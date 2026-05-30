@@ -27,3 +27,12 @@ export function recipePhotoPublicUrl(path: string): string {
   if (!base) return path;
   return `${base}/storage/v1/object/public/${RECIPE_PHOTO_BUCKET}/${path}`;
 }
+
+export function isRecipePhotoBucketMissing(message: string): boolean {
+  const lower = message.toLowerCase();
+  return (
+    lower.includes("bucket not found") ||
+    lower.includes("バケット") ||
+    lower.includes("does not exist")
+  );
+}
